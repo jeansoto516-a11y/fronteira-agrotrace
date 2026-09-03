@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.models.usuario import Usuario
+from app.core.deps import get_usuario_atual, exigir_perfil
+from app.models.usuario import Usuario, PerfilUsuario
+from app.schemas.usuario import UsuarioOut
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
 from app.core.security import (
     verificar_senha,
@@ -78,3 +80,15 @@ def refresh(dados: RefreshRequest, db: Session = Depends(get_db)):
         access_token=criar_access_token(dados_token),
         refresh_token=criar_refresh_token(dados_token),
     )
+
+
+@router.get("/me", response_model=UsuarioOut)
+def meu_perfil(usuario_atual: Usuario = Depends(get_usuario_atual)):
+    """Retorna os dados do usuário autenticado (qualquer perfil pode acessar)."""
+    return usuario_atual
+
+
+@router.get("/somente-admin")
+def rota_restrita(usuario_atual: Usuario = Depends(exigir_perfil(PerfilUsuario.COOPERATIVA_ADMIN))):
+    """Rota de teste: só usuários com perfil Cooperativa/Admin podem acessar."""
+    return {"mensagem": f"Bem-vindo, {usuario_atual.nome}! Você é admin."}
