@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.db.database import engine
+from app.api import auth
 
 app = FastAPI(title="Fronteira AgroTrace API")
+app.include_router(auth.router)
 
 
 @app.get("/")
