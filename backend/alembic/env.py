@@ -14,7 +14,6 @@ from app.db.database import Base
 
 # Importe aqui todas as models do projeto conforme forem criadas,
 # para o Alembic conseguir detectá-las no autogenerate.
-# Exemplo (ainda vamos criar esses arquivos na Fase 2/3):
 from app.models.usuario import Usuario
 
 # this is the Alembic Config object, which provides
@@ -30,6 +29,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
+
 def include_object(object, name, type_, reflected, compare_to):
     """
     Impede que o Alembic tente alterar/apagar tabelas do sistema
@@ -38,6 +38,8 @@ def include_object(object, name, type_, reflected, compare_to):
     if type_ == "table" and name in ("spatial_ref_sys",):
         return False
     return True
+
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -50,6 +52,7 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
+        include_object=include_object,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -72,7 +75,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            include_object=include_object,
         )
 
         with context.begin_transaction():
