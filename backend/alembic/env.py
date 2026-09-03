@@ -15,7 +15,7 @@ from app.db.database import Base
 # Importe aqui todas as models do projeto conforme forem criadas,
 # para o Alembic conseguir detectá-las no autogenerate.
 # Exemplo (ainda vamos criar esses arquivos na Fase 2/3):
-# from app.models.produtor import Produtor
+from app.models.usuario import Usuario
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -30,6 +30,14 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
+def include_object(object, name, type_, reflected, compare_to):
+    """
+    Impede que o Alembic tente alterar/apagar tabelas do sistema
+    que não pertencem às nossas models (ex: tabelas internas do PostGIS).
+    """
+    if type_ == "table" and name in ("spatial_ref_sys",):
+        return False
+    return True
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
