@@ -1,0 +1,22 @@
+# Ambiente virtual Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Variáveis de ambiente (sensível)
+backend/.env
+.env
+
+# Node / Next.js (frontend)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Alembic (mantemos as migrations, mas ignoramos cache se houver)
+backend/alembic/__pycache__/
