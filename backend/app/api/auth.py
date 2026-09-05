@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.deps import get_usuario_atual, exigir_perfil
 from app.models.usuario import Usuario, PerfilUsuario
-from app.schemas.usuario import UsuarioOut
+from app.schemas.usuario import UsuarioOut, UsuarioCreate
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
 from app.core.security import (
     verificar_senha,
+    gerar_hash_senha,
     criar_access_token,
     criar_refresh_token,
     decodificar_token,
@@ -92,3 +93,34 @@ def meu_perfil(usuario_atual: Usuario = Depends(get_usuario_atual)):
 def rota_restrita(usuario_atual: Usuario = Depends(exigir_perfil(PerfilUsuario.COOPERATIVA_ADMIN))):
     """Rota de teste: só usuários com perfil Cooperativa/Admin podem acessar."""
     return {"mensagem": f"Bem-vindo, {usuario_atual.nome}! Você é admin."}
+
+
+@router.post("/register", response_model=UsuarioOut, status_code=status.HTTP_201_CREATED)
+def registrar_usuario(
+    dados: UsuarioCreate,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(exigir_perfil(PerfilUsuario.COOPERATIVA_ADMIN)),
+):
+    """
+    Cadastra um novo usuário no sistema. Somente usuários com perfil
+    Cooperativa/Admin podem criar novos usuários (de qualquer perfil).
+    """
+    email_existente = db.query(Usuario).filter(Usuario.email == dados.email).first()
+    if email_existente:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Já existe um usuário cadastrado com esse email",
+        )
+
+    novo_usuario = Usuario(
+        nome=dados.nome,
+        email=dados.email,
+        senha_hash=gerar_hash_senha(dados.senha),
+        perfil=dados.perfil,
+    )
+
+    db.add(novo_usuario)
+    db.commit()
+    db.refresh(novo_usuario)
+
+    return novo_usuario
