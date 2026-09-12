@@ -5,6 +5,8 @@ from app.db.database import get_db
 from app.core.deps import get_usuario_atual, exigir_perfil
 from app.models.usuario import Usuario, PerfilUsuario
 from app.schemas.usuario import UsuarioOut, UsuarioCreate
+from app.core.auditoria import registrar_log
+from app.models.log_atividade import TipoAcao
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
 from app.core.security import (
     verificar_senha,
@@ -33,9 +35,22 @@ def login(dados: LoginRequest, db: Session = Depends(get_db)):
     )
 
     if not usuario:
+        registrar_log(
+            db,
+            acao=TipoAcao.LOGIN_FALHOU,
+            entidade="Usuario",
+            detalhes=f"Tentativa de login com email inexistente: {dados.email}",
+        )
         raise credenciais_invalidas
 
     if not verificar_senha(dados.senha, usuario.senha_hash):
+        registrar_log(
+            db,
+            acao=TipoAcao.LOGIN_FALHOU,
+            entidade="Usuario",
+            usuario_id=usuario.id,
+            detalhes="Senha incorreta",
+        )
         raise credenciais_invalidas
 
     if not usuario.ativo:
@@ -45,6 +60,14 @@ def login(dados: LoginRequest, db: Session = Depends(get_db)):
         )
 
     dados_token = {"sub": str(usuario.id), "perfil": usuario.perfil.value}
+
+    registrar_log(
+        db,
+        acao=TipoAcao.LOGIN,
+        entidade="Usuario",
+        usuario_id=usuario.id,
+        detalhes=f"Login realizado: {usuario.email}",
+    )
 
     return TokenResponse(
         access_token=criar_access_token(dados_token),
