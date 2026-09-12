@@ -15,6 +15,15 @@ from app.db.database import Base
 # Importe aqui todas as models do projeto conforme forem criadas,
 # para o Alembic conseguir detectá-las no autogenerate.
 from app.models.usuario import Usuario
+from app.models.produtor import Produtor
+from app.models.fazenda import Fazenda
+from app.models.talhao import Talhao
+from app.models.cultura import Cultura
+from app.models.safra import Safra
+from app.models.talhao_safra import TalhaoSafra
+from app.models.colheita import Colheita
+from app.models.lote import Lote
+from app.models.lote_colheita import LoteColheita
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
