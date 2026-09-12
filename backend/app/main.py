@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 
+import app.models  # noqa: F401 — garante que todas as models sejam registradas
+
 from app.db.database import engine
 from app.api import auth
 from fastapi.middleware.cors import CORSMiddleware
+from app.api import auth, produtores
 
 app = FastAPI(title="Fronteira AgroTrace API")
 app.add_middleware(
@@ -14,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(auth.router)
-
+app.include_router(produtores.router)
 
 @app.get("/")
 def root():
