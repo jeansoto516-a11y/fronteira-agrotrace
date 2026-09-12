@@ -7,6 +7,7 @@ from app.db.database import engine
 from app.api import auth
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, produtores
+from app.api import auth, produtores, fazendas
 
 app = FastAPI(title="Fronteira AgroTrace API")
 app.add_middleware(
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 app.include_router(auth.router)
 app.include_router(produtores.router)
+app.include_router(fazendas.router)
 
 @app.get("/")
 def root():
