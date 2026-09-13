@@ -56,3 +56,24 @@ export interface FazendaCreateInput {
     produtor_id: string;
 }
 
+export interface GeoJSONPolygonType {
+    type: "Polygon";
+    coordinates: number[][][];
+}
+
+export interface Talhao {
+    id: string;
+    nome_identificador: string;
+    area_hectares: number | null;
+    fazenda_id: string;
+    criado_em: string;
+    poligono: GeoJSONPolygonType;
+}
+
+export interface TalhaoCreateInput {
+    nome_identificador: string;
+    area_hectares?: number;
+    fazenda_id: string;
+    poligono: GeoJSONPolygonType;
+}
+
