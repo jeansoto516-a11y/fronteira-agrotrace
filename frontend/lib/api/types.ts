@@ -17,3 +17,42 @@ export interface TokenResponse {
     refresh_token: string;
     token_type: string;
 }
+
+export interface Produtor {
+    id: string;
+    nome: string;
+    cpf_cnpj: string;
+    telefone: string | null;
+    email: string | null;
+    criado_em: string;
+}
+
+export interface ProdutorCreateInput {
+    nome: string;
+    cpf_cnpj: string;
+    telefone?: string;
+    email?: string;
+}
+
+export interface Fazenda {
+    id: string;
+    nome: string;
+    municipio: string;
+    estado: string;
+    area_total_hectares: number | null;
+    latitude: number | null;
+    longitude: number | null;
+    produtor_id: string;
+    criado_em: string;
+}
+
+export interface FazendaCreateInput {
+    nome: string;
+    municipio: string;
+    estado: string;
+    area_total_hectares?: number;
+    latitude?: number;
+    longitude?: number;
+    produtor_id: string;
+}
+
