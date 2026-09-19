@@ -77,3 +77,30 @@ export interface TalhaoCreateInput {
     poligono: GeoJSONPolygonType;
 }
 
+export interface Cultura {
+    id: string;
+    nome: string;
+}
+
+export interface CulturaCreateInput {
+    nome: string;
+}
+
+export interface Safra {
+    id: string;
+    identificacao: string;
+    ano_inicio: number;
+    ano_fim: number;
+}
+
+export interface SafraCreateInput {
+    identificacao: string;
+    ano_inicio: number;
+    ano_fim: number;
+}
+
+export interface TalhaoSafraCreateInput {
+    talhao_id: string;
+    safra_id: string;
+    cultura_id: string;
+}
