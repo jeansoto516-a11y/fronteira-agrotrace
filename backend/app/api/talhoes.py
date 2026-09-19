@@ -36,6 +36,10 @@ def _talhao_para_saida(talhao: Talhao) -> dict:
     poligono_shapely = to_shape(talhao.poligono)
     poligono_geojson = mapping(poligono_shapely)  # shapely -> dict GeoJSON
 
+    area_calculada_hectares = None
+    if talhao.area_calculada_m2 is not None:
+        area_calculada_hectares = round(talhao.area_calculada_m2 / 10_000, 4)
+
     return {
         "id": talhao.id,
         "nome_identificador": talhao.nome_identificador,
@@ -43,6 +47,7 @@ def _talhao_para_saida(talhao: Talhao) -> dict:
         "fazenda_id": talhao.fazenda_id,
         "criado_em": talhao.criado_em,
         "poligono": poligono_geojson,
+        "area_calculada_hectares": area_calculada_hectares,
     }
 
 

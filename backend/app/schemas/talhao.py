@@ -53,5 +53,6 @@ class TalhaoOut(TalhaoBase):
     fazenda_id: uuid.UUID
     criado_em: datetime
     poligono: GeoJSONPolygon
+    area_calculada_hectares: Optional[float] = None
 
     model_config = {"from_attributes": True}

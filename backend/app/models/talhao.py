@@ -5,6 +5,9 @@ from sqlalchemy import Column, String, DateTime, Float, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
+from sqlalchemy import func
+from sqlalchemy.orm import column_property
+from geoalchemy2 import Geography
 
 from app.db.database import Base
 
@@ -24,6 +27,14 @@ class Talhao(Base):
     # Polígono geoespacial da área do talhão (o dado mais crítico do projeto).
     # SRID 4326, igual ao usado na Fazenda, para manter consistência.
     poligono = Column(Geometry(geometry_type="POLYGON", srid=4326), nullable=False)
+
+    # Área calculada automaticamente pelo PostGIS a partir do polígono,
+    # convertendo para 'geography' para o cálculo considerar a curvatura
+    # da Terra e retornar metros quadrados corretos (não graus).
+    area_calculada_m2 = column_property(
+        func.ST_Area(func.cast(poligono, Geography))
+    )
+    
 
     fazenda_id = Column(UUID(as_uuid=True), ForeignKey("fazendas.id"), nullable=False)
     criado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
