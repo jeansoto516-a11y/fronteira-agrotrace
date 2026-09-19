@@ -88,7 +88,7 @@ def listar_vinculos(
         query = query.filter(TalhaoSafra.talhao_id == talhao_id)
     if safra_id:
         query = query.filter(TalhaoSafra.safra_id == safra_id)
-        vinculos = query.all()
+    vinculos = query.all()
     return [
         {
             "id": v.id,
