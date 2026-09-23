@@ -104,3 +104,28 @@ export interface TalhaoSafraCreateInput {
     safra_id: string;
     cultura_id: string;
 }
+
+export interface TalhaoSafra {
+    id: string;
+    talhao: Talhao;
+    safra: Safra;
+    cultura: Cultura;
+}
+
+export interface Colheita {
+    id: string;
+    data_colheita: string;
+    quantidade_kg: number;
+    latitude: number;
+    longitude: number;
+    talhao_safra_id: string;
+    criado_em: string;
+}
+
+export interface ColheitaCreateInput {
+    data_colheita: string;
+    quantidade_kg: number;
+    latitude: number;
+    longitude: number;
+    talhao_safra_id: string;
+}
