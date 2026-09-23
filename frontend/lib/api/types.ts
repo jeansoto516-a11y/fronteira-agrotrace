@@ -129,3 +129,57 @@ export interface ColheitaCreateInput {
     longitude: number;
     talhao_safra_id: string;
 }
+
+export interface Lote {
+    id: string;
+    codigo_lote: string;
+    peso_total_kg: number | null;
+    criado_em: string;
+}
+
+export interface ColheitaVinculadaInput {
+    colheita_id: string;
+    quantidade_kg: number;
+}
+
+export interface LoteCreateInput {
+    codigo_lote: string;
+    colheitas: ColheitaVinculadaInput[];
+}
+
+export interface OrigemTalhao {
+    talhao_id: string;
+    nome_identificador: string;
+    area_hectares: number | null;
+}
+
+export interface OrigemFazenda {
+    fazenda_id: string;
+    nome: string;
+    municipio: string;
+    estado: string;
+}
+
+export interface OrigemProdutor {
+    produtor_id: string;
+    nome: string;
+    cpf_cnpj: string;
+}
+
+export interface ColheitaRastreada {
+    colheita_id: string;
+    data_colheita: string;
+    quantidade_kg_no_lote: number;
+    safra: string;
+    cultura: string;
+    talhao: OrigemTalhao;
+    fazenda: OrigemFazenda;
+    produtor: OrigemProdutor;
+}
+
+export interface RastreabilidadeLote {
+    lote_id: string;
+    codigo_lote: string;
+    peso_total_kg: number | null;
+    origens: ColheitaRastreada[];
+}
