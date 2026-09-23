@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import Optional
+from app.schemas.talhao import GeoJSONPolygon
 
 from pydantic import BaseModel, field_validator
 
@@ -47,6 +48,7 @@ class OrigemTalhao(BaseModel):
     talhao_id: uuid.UUID
     nome_identificador: str
     area_hectares: Optional[float] = None
+    poligono: GeoJSONPolygon
 
 
 class OrigemFazenda(BaseModel):

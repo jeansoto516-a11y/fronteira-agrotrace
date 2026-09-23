@@ -2,6 +2,8 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from shapely.geometry import mapping
+from geoalchemy2.shape import to_shape
 
 from app.db.database import get_db
 from app.core.deps import get_usuario_atual, exigir_perfil
@@ -118,6 +120,7 @@ def consultar_rastreabilidade(
                     talhao_id=talhao.id,
                     nome_identificador=talhao.nome_identificador,
                     area_hectares=talhao.area_hectares,
+                    poligono=mapping(to_shape(talhao.poligono)),
                 ),
                 fazenda=OrigemFazenda(
                     fazenda_id=fazenda.id,
