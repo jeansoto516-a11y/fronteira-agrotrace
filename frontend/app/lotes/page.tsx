@@ -6,6 +6,7 @@ import RotaProtegida from "@/components/RotaProtegida";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import MapaOrigensWrapper from "@/components/Mapa/MapaOrigensWrapper";
 import {
     Table,
     TableBody,
@@ -256,6 +257,9 @@ export default function LotesPage() {
                 <p className="font-medium">
                 Lote {rastreabilidade.codigo_lote} — {rastreabilidade.peso_total_kg}kg total
                 </p>
+            <div className="border rounded-lg overflow-hidden">
+                <MapaOrigensWrapper origens={rastreabilidade.origens} />
+            </div>
                 {rastreabilidade.origens.map((origem, index) => (
                 <div key={index} className="border rounded-lg p-4 space-y-1">
                     <p><strong>Produtor:</strong> {origem.produtor.nome} (CPF/CNPJ: {origem.produtor.cpf_cnpj})</p>

@@ -151,6 +151,7 @@ export interface OrigemTalhao {
     talhao_id: string;
     nome_identificador: string;
     area_hectares: number | null;
+    poligono: GeoJSONPolygonType;
 }
 
 export interface OrigemFazenda {
