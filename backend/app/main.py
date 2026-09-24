@@ -12,6 +12,7 @@ from app.api import auth, produtores, fazendas, talhoes
 from app.api import auth, produtores, fazendas, talhoes, culturas, safras, talhao_safra
 from app.api import auth, produtores, fazendas, talhoes, culturas, safras, talhao_safra, colheitas
 from app.api import auth, produtores, fazendas, talhoes, culturas, safras, talhao_safra, colheitas, lotes
+from app.api import auth, produtores, fazendas, talhoes, culturas, safras, talhao_safra, colheitas, lotes, documentos
 
 app = FastAPI(title="Fronteira AgroTrace API")
 app.add_middleware(
@@ -30,6 +31,7 @@ app.include_router(safras.router)
 app.include_router(talhao_safra.router)
 app.include_router(colheitas.router)
 app.include_router(lotes.router)
+app.include_router(documentos.router)   
 
 @app.get("/")
 def root():

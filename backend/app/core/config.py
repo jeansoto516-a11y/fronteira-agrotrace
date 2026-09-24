@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    PASTA_UPLOADS: str = "uploads"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
@@ -18,3 +19,4 @@ class Settings(BaseSettings):
 # Instância única (singleton) usada em todo o projeto.
 # Importe assim: from app.core.config import settings
 settings = Settings()
+

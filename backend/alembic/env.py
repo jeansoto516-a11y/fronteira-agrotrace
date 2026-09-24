@@ -25,6 +25,7 @@ from app.models.colheita import Colheita
 from app.models.lote import Lote
 from app.models.lote_colheita import LoteColheita
 from app.models.log_atividade import LogAtividade
+from app.models.documento import Documento, TipoDocumento, EntidadeDocumento
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

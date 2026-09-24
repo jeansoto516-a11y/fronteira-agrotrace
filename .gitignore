@@ -20,3 +20,6 @@ Thumbs.db
 
 # Alembic (mantemos as migrations, mas ignoramos cache se houver)
 backend/alembic/__pycache__/
+
+backend/uploads/*
+!backend/uploads/.gitkeep
