@@ -1,65 +1,110 @@
 # Fronteira AgroTrace
 
-Plataforma de rastreabilidade de commodities agrícolas — do talhão até a exportação — com geolocalização de áreas produtivas e gestão de certificação socioambiental, atendendo exigências de compradores internacionais (ex: regulamentações anti-desmatamento tipo EUDR).
+Plataforma de rastreabilidade de commodities agrícolas (soja e café),
+do talhão até a exportação, com geolocalização das áreas produtivas e
+gestão de certificação socioambiental (exigências tipo EUDR).
 
-**Cliente:** Sertões Agroexportadora — cooperativa exportadora de soja e café com atuação em MT e BA.
+**Cliente:** Sertões Agroexportadora (MT e BA)
 
-## Objetivo
+## Stack
 
-Substituir o controle de origem da produção (hoje feito em planilhas soltas por fazenda) por uma plataforma centralizada com rastreabilidade real da cadeia, cruzamento geoespacial com áreas embargadas/desmatamento, e visibilidade sobre a documentação socioambiental de cada lote antes do embarque.
+**Backend:** Python + FastAPI, SQLAlchemy, GeoAlchemy2, Alembic,
+PostgreSQL + PostGIS, JWT (python-jose + passlib), WeasyPrint (PDF)
 
-## Stack técnica
+**Frontend:** Next.js + TypeScript, shadcn/ui, react-leaflet,
+leaflet-draw, axios
 
-**Backend**
-- Python + FastAPI
-- SQLAlchemy + GeoAlchemy2 + Alembic (migrations)
-- PostgreSQL + PostGIS
+Documentos enviados ficam em disco local (`backend/uploads/`).
 
-**Frontend**
-- Next.js (React) + TypeScript
-- react-leaflet (mapas)
-- shadcn/ui (UI Kit)
+## Estrutura
 
-**Outros**
-- Autenticação: JWT + refresh token (python-jose + passlib)
-- Relatórios em PDF: WeasyPrint
-- Armazenamento de documentos: disco local (sem deploy neste projeto)
-
-## Escopo funcional
-
-1. Cadastro de produtores rurais, fazendas e talhões (com polígono georreferenciado)
-2. Cadastro de safras e vínculo talhão → safra → cultura
-3. Registro de coleta/colheita por talhão com geolocalização e data
-4. Formação de lotes com rastreabilidade reversa até o talhão de origem
-5. Gestão documental de certificações socioambientais (CAR, licenças, laudos)
-6. Cruzamento geoespacial com áreas embargadas/desmatamento (ST_Intersects)
-7. Cadeia de custódia: fazenda → armazém → transporte → porto → exportação
-8. Painel de conformidade por lote
-9. Relatório de rastreabilidade em PDF (com mapa embutido)
-10. Perfis de acesso: Produtor, Cooperativa/Admin, Auditor de Compliance, Exportador
-11. Dashboard executivo com indicadores consolidados
-
-## Estrutura do repositório
-
+```
 fronteira-agrotrace/
-├── backend/ # API FastAPI + SQLAlchemy + GeoAlchemy2 + Alembic
-├── frontend/ # Next.js + TypeScript + shadcn/ui + react-leaflet
-├── docs/ # Documentação técnica do projeto
+├── backend/    # API FastAPI (app/api, models, schemas, core, db)
+├── frontend/   # Next.js (app/, components/, lib/, contexts/)
+├── docs/
 └── README.md
+```
 
+## Funcionalidades prontas
 
-## Status do projeto
+- Autenticação JWT + refresh token e 4 perfis (RBAC): produtor,
+  cooperativa_admin, auditor_compliance, exportador
+- CRUD de produtores, fazendas (ponto) e talhões (polígono GeoJSON)
+- Área do talhão calculada via PostGIS (ST_Area)
+- Culturas, safras e vínculo talhão → safra → cultura
+- Registro de colheita com geolocalização e data
+- Formação de lotes e rastreabilidade reversa até o produtor
+- Mapa com os talhões de origem de cada lote
+- Documentos de certificação (CAR, licenças, laudos) com upload,
+  versionamento e controle de validade
+- Auditoria de ações (log de atividades)
 
-🚧 Em desenvolvimento — seguindo cronograma de 16 semanas dividido em 16 fases.
+## Telas do frontend
 
-**Fase 1 — Setup & Infraestrutura (Semana 1-2):** ✅ Backend inicial configurado (FastAPI + PostgreSQL + PostGIS + Alembic). Em andamento: estrutura de repositório Git.
+Login, dashboard, produtores, fazendas, talhões (desenho de polígono
+no mapa), safras/culturas, colheitas (ponto no mapa), lotes
+(composição e rastreabilidade com mapa).
 
-## Como rodar o backend localmente
+## Status (33 de 58 tarefas)
 
-\`\`\`powershell
+| Fase | Status |
+|------|--------|
+| 1 Setup e infraestrutura | Concluída |
+| 2 Autenticação e perfis | Concluída |
+| 3 Modelagem de dados core | Concluída |
+| 4 Produtores, fazendas, talhões | Concluída |
+| 5 Safras e culturas | Concluída |
+| 6 Colheita e coleta | Concluída |
+| 7 Lotes e rastreabilidade | Concluída |
+| 8 Certificação socioambiental | Em andamento |
+| 9 a 16 | Pendentes |
+
+## Como rodar (Windows / PowerShell)
+
+Pré-requisitos: Python 3.14, Node.js, PostgreSQL 18 com PostGIS.
+
+**Banco:** criar o banco `agrotrace_db` e rodar
+`CREATE EXTENSION postgis;` nele.
+
+**Backend:**
+
+```powershell
 cd backend
+python -m venv venv
 .\venv\Scripts\Activate.ps1
-python -m uvicorn app.main:app --reload
-\`\`\`
+python -m pip install -r requirements.txt
+```
 
-API disponível em `http://127.0.0.1:8000`, documentação automática em `http://127.0.0.1:8000/docs`.
+Criar `backend\.env`:
+
+```
+DATABASE_URL=postgresql://postgres@localhost:5432/agrotrace_db
+SECRET_KEY=<chave gerada com secrets.token_hex(32)>
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+```powershell
+python -m alembic upgrade head
+python -m uvicorn app.main:app --reload
+```
+
+API em `http://127.0.0.1:8000` e docs em `/docs`.
+
+**Frontend:**
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+App em `http://localhost:3000`.
+
+## Observações
+
+- Sempre usar `python -m pip` (e não `pip`) com o venv ativo.
+- Manter `bcrypt==4.0.1` (compatibilidade com passlib).
+- O primeiro usuário admin precisa ser criado direto no banco;
+  os demais são cadastrados via `POST /auth/register`.

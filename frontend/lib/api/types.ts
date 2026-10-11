@@ -184,3 +184,33 @@ export interface RastreabilidadeLote {
     peso_total_kg: number | null;
     origens: ColheitaRastreada[];
 }
+
+export type tipoDocumento = 
+| "car"
+| "licenca_ambiental"
+| "laudo_tecnico"
+| "outro"; 
+
+export type EntidadeDocumento = "fazenda" | "talhao"; 
+
+export type SituacaoValidade = 
+| "sem_validade"
+| "valido"
+| "a_vencer"
+| "vencido";
+
+export interface Documento {
+    id: string;
+    grupo_id: string;
+    versao: number;
+    vigente: boolean;
+    tipo: tipoDocumento;
+    entidade_tipo: EntidadeDocumento;
+    entidade_id: string;
+    nome_arquivo_original: string;
+    data_validade: string | null;
+    enviado_por_id: string;
+    criado_em: string;
+    dias_para_vencer: number | null;
+    situacao_validade: SituacaoValidade;
+}
