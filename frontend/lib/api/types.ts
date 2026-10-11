@@ -214,3 +214,22 @@ export interface Documento {
     dias_para_vencer: number | null;
     situacao_validade: SituacaoValidade;
 }
+
+export type TipoAlerta =
+    | "vence_30_dias"
+    | "vence_15_dias"
+    | "vence_7_dias"
+    | "vencido";
+
+export interface AlertaDocumento {
+    id: string;
+    documento_id: string;
+    tipo_alerta: TipoAlerta;
+    mensagem: string;
+    lido: boolean;
+    criado_em: string | null;
+    documento_tipo: "car" | "licenca_ambiental" | "laudo_tecnico" | "outro";
+    entidade_tipo: EntidadeDocumento;
+    entidade_id: string;
+    data_validade: string | null;
+}
