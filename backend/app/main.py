@@ -1,9 +1,11 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from sqlalchemy import text
 
 import app.models  # noqa: F401 — garante que todas as models sejam registradas
 
 from app.db.database import engine
+from app.core.agendador import iniciar_agendador, parar_agendador
 from app.api import auth
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, produtores
@@ -14,7 +16,14 @@ from app.api import auth, produtores, fazendas, talhoes, culturas, safras, talha
 from app.api import auth, produtores, fazendas, talhoes, culturas, safras, talhao_safra, colheitas, lotes
 from app.api import auth, produtores, fazendas, talhoes, culturas, safras, talhao_safra, colheitas, lotes, documentos
 
-app = FastAPI(title="Fronteira AgroTrace API")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    iniciar_agendador()
+    yield
+    parar_agendador()
+
+
+app = FastAPI(title="Fronteira AgroTrace API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -32,6 +41,7 @@ app.include_router(talhao_safra.router)
 app.include_router(colheitas.router)
 app.include_router(lotes.router)
 app.include_router(documentos.router)   
+app.include_router(alertas.router)
 
 @app.get("/")
 def root():
