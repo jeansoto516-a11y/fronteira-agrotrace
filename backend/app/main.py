@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.api import alertas
 from app.api import areas_restritas
 from app.api import cruzamentos
+from app.api import sinalizacoes
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 
@@ -47,6 +48,7 @@ app.include_router(documentos.router)
 app.include_router(alertas.router)
 app.include_router(areas_restritas.router)
 app.include_router(cruzamentos.router)
+app.include_router(sinalizacoes.router)
 
 @app.get("/")
 def root():

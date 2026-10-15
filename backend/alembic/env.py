@@ -28,6 +28,7 @@ from app.models.log_atividade import LogAtividade
 from app.models.documento import Documento, TipoDocumento, EntidadeDocumento
 from app.models.alerta_documento import AlertaDocumento, TipoAlerta
 from app.models.area_restrita import AreaRestrita, TipoAreaRestrita
+from app.models.sinalizacao_talhao import SinalizacaoTalhao
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

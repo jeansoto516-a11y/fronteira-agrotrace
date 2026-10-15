@@ -15,6 +15,7 @@ from app.models.fazenda import Fazenda
 from app.schemas.talhao import TalhaoCreate, TalhaoUpdate, TalhaoOut, GeoJSONPolygon
 from app.core.auditoria import registrar_log
 from app.models.log_atividade import TipoAcao
+from app.core.sinalizacao import sincronizar_sinalizacoes_seguro
 
 router = APIRouter(prefix="/talhoes", tags=["Talhões"])
 
@@ -71,6 +72,7 @@ def criar_talhao(
     db.add(novo_talhao)
     db.commit()
     db.refresh(novo_talhao)
+    sincronizar_sinalizacoes_seguro(db, novo_talhao.id)
 
     registrar_log(
         db,
@@ -136,6 +138,8 @@ def editar_talhao(
 
     db.commit()
     db.refresh(talhao)
+    if novo_poligono is not None:
+        sincronizar_sinalizacoes_seguro(db, talhao.id)
 
     registrar_log(
         db,
