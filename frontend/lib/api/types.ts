@@ -185,7 +185,7 @@ export interface RastreabilidadeLote {
     origens: ColheitaRastreada[];
 }
 
-export type tipoDocumento = 
+export type TipoDocumento = 
 | "car"
 | "licenca_ambiental"
 | "laudo_tecnico"
@@ -204,7 +204,7 @@ export interface Documento {
     grupo_id: string;
     versao: number;
     vigente: boolean;
-    tipo: tipoDocumento;
+    tipo: TipoDocumento;
     entidade_tipo: EntidadeDocumento;
     entidade_id: string;
     nome_arquivo_original: string;
@@ -232,4 +232,45 @@ export interface AlertaDocumento {
     entidade_tipo: EntidadeDocumento;
     entidade_id: string;
     data_validade: string | null;
+}
+
+export type TipoAreaRestrita = "embargo" | "desmatamento";
+
+export type StatusRevisao = "pendente" | "confirmada" | "descartada";
+
+export interface Sinalizacao {
+    id: string;
+    talhao_id: string;
+    talhao_nome: string;
+    fazenda_id: string;
+    area_restrita_id: string;
+    tipo: TipoAreaRestrita;
+    identificador: string;
+    descricao: string | null;
+    fonte: string;
+    data_referencia: string;
+    area_sobreposta_hectares: number;
+    percentual_do_talhao: number;
+    ativa: boolean;
+    detectada_em: string | null;
+    atualizada_em: string | null;
+    resolvida_em: string | null;
+    status_revisao: StatusRevisao;
+    parecer: string | null;
+    revisado_por_id: string | null;
+    revisado_por_nome: string | null;
+    revisado_em: string | null;
+}
+
+export interface ResumoSinalizacoes {
+    talhoes_sinalizados: number;
+    sinalizacoes_ativas: number;
+    embargos: number;
+    desmatamentos: number;
+    pendentes_revisao: number;
+}
+
+export interface RevisaoInput {
+    decisao: "confirmada" | "descartada";
+    parecer?: string;
 }

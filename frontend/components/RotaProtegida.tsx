@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import Navegacao from "@/components/Navegacao";
 
-export default function RotaProtegida({ children }: { children: React.ReactNode }) {
+export default function RotaProtegida({ children }: { children: React.ReactNode}) {
     const { usuario, carregando } = useAuth();
     const router = useRouter();
 
@@ -22,5 +23,10 @@ export default function RotaProtegida({ children }: { children: React.ReactNode 
     return null;
     }
 
-    return <>{children}</>;
+    return (
+    <div className="flex min-h-screen">
+        <Navegacao />
+        <div className="min-w-0 flex-1">{children}</div>
+    </div>
+    );
 }
