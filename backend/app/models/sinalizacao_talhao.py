@@ -1,8 +1,9 @@
+import enum
 import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Column, Float, Boolean, DateTime, ForeignKey,
+    Column, Float, Boolean, DateTime, ForeignKey, Enum, String,
     UniqueConstraint, text,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -14,11 +15,19 @@ def _agora():
     return datetime.now(timezone.utc)
 
 
+class StatusRevisao(str, enum.Enum):
+    PENDENTE = "pendente"
+    CONFIRMADA = "confirmada"
+    DESCARTADA = "descartada"
+
+
 class SinalizacaoTalhao(Base):
     """
     Sinalização de que um talhão se sobrepõe a uma área restrita
     (embargo ou desmatamento). Quando a sobreposição deixa de existir,
     a linha não é apagada: fica ativa=False com 'resolvida_em'.
+    A revisão manual (auditor de compliance) fica nas colunas
+    status_revisao, parecer, revisado_por_id e revisado_em.
     """
     __tablename__ = "sinalizacoes_talhao"
     __table_args__ = (
@@ -50,6 +59,21 @@ class SinalizacaoTalhao(Base):
     detectada_em = Column(DateTime(timezone=True), default=_agora)
     atualizada_em = Column(DateTime(timezone=True), default=_agora)
     resolvida_em = Column(DateTime(timezone=True), nullable=True)
+
+    # Revisão manual pelo auditor de compliance
+    status_revisao = Column(
+        Enum(StatusRevisao),
+        nullable=False,
+        default=StatusRevisao.PENDENTE,
+        server_default=StatusRevisao.PENDENTE.name,
+    )
+    parecer = Column(String(1000), nullable=True)
+    revisado_por_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("usuarios.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    revisado_em = Column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self):
         return (

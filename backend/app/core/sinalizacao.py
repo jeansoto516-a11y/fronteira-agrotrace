@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.core.cruzamento import _consultar_interseccoes
-from app.models.sinalizacao_talhao import SinalizacaoTalhao
+from app.models.sinalizacao_talhao import SinalizacaoTalhao, StatusRevisao
+
 
 # Sobreposição mínima (em m²) para sinalizar. Talhão que apenas encosta
 # na borda de uma área restrita tem sobreposição 0 e NÃO é sinalizado.
@@ -17,10 +18,10 @@ def sincronizar_sinalizacoes(
     """
     Compara as sobreposições reais de hoje (talhão x área restrita) com
     as sinalizações gravadas e deixa o banco em dia:
-      - cria a sinalização de quem passou a se sobrepor;
-      - atualiza hectares/percentual se o valor mudou;
-      - reativa uma sinalização antiga que voltou a se sobrepor;
-      - resolve (ativa=False) a que deixou de se sobrepor.
+        - cria a sinalização de quem passou a se sobrepor;
+        - atualiza hectares/percentual se o valor mudou;
+        - reativa uma sinalização antiga que voltou a se sobrepor;
+        - resolve (ativa=False) a que deixou de se sobrepor.
     Se talhao_id for informado, só esse talhão é verificado.
     Pode rodar quantas vezes quiser: sem mudança, não altera nada.
     """
@@ -69,6 +70,10 @@ def sincronizar_sinalizacoes(
             sinalizacao.area_sobreposta_hectares = hectares
             sinalizacao.percentual_do_talhao = percentual
             sinalizacao.atualizada_em = agora
+            sinalizacao.status_revisao = StatusRevisao.PENDENTE
+            sinalizacao.parecer = None
+            sinalizacao.revisado_por_id = None
+            sinalizacao.revisado_em = None
             reativadas += 1
         elif (
             sinalizacao.area_sobreposta_hectares != hectares
