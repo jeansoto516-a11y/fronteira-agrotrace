@@ -4,6 +4,8 @@ from app.api import areas_restritas
 from app.api import cruzamentos
 from app.api import sinalizacoes
 from app.api import cadeia
+from app.api import etapas
+from app.api import movimentacoes
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 
@@ -51,6 +53,8 @@ app.include_router(areas_restritas.router)
 app.include_router(cruzamentos.router)
 app.include_router(sinalizacoes.router)
 app.include_router(cadeia.router)
+app.include_router(etapas.router)
+app.include_router(movimentacoes.router)
 
 @app.get("/")
 def root():

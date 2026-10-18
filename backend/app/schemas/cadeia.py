@@ -5,6 +5,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.models.etapa_lote import TipoEtapa, StatusEtapa, ModalTransporte
+from app.models.movimentacao_etapa import TipoMovimentacao
 
 
 class OrigemFazendaCadeia(BaseModel):
@@ -15,6 +16,14 @@ class OrigemFazendaCadeia(BaseModel):
     estado: str
     produtor_nome: str
     quantidade_kg: float
+
+
+class UltimaMovimentacaoCadeia(BaseModel):
+    tipo: TipoMovimentacao
+    ocorrida_em: datetime
+    quantidade_kg: Optional[float] = None
+    responsavel: Optional[str] = None
+    registrado_por_nome: Optional[str] = None
 
 
 class EtapaCadeiaOut(BaseModel):
@@ -41,6 +50,11 @@ class EtapaCadeiaOut(BaseModel):
     pais_destino: Optional[str] = None
     importador: Optional[str] = None
     navio: Optional[str] = None
+    quantidade_entrada_kg: Optional[float] = None
+    quantidade_saida_kg: Optional[float] = None
+    diferenca_kg: Optional[float] = None
+    total_movimentacoes: int = 0
+    ultima_movimentacao: Optional[UltimaMovimentacaoCadeia] = None
     origens: Optional[list[OrigemFazendaCadeia]] = None
 
 

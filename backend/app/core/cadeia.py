@@ -3,7 +3,9 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app.models.lote import Lote
-from app.models.etapa_lote import EtapaLote, TipoEtapa
+from app.models.etapa_lote import EtapaLote, TipoEtapa, StatusEtapa
+from app.models.movimentacao_etapa import MovimentacaoEtapa, TipoMovimentacao
+from app.models.usuario import Usuario
 
 # Etapas que alguém precisa registrar. A de origem (fazenda) é montada
 # automaticamente pela rastreabilidade do lote.
@@ -67,7 +69,54 @@ def _etapa_origem(lote: Lote) -> dict:
     }
 
 
-def _etapa_registrada(e: EtapaLote) -> dict:
+def _resumir_movimentacoes(db: Session, etapa_ids: list) -> dict:
+    """
+    Para cada etapa: soma de entradas, soma de saídas, quantidade de
+    movimentações e a última movimentação (a mais recente).
+    """
+    resumo: dict = {}
+    if not etapa_ids:
+        return resumo
+
+    linhas = (
+        db.query(MovimentacaoEtapa, Usuario.nome)
+        .outerjoin(Usuario, Usuario.id == MovimentacaoEtapa.registrado_por_id)
+        .filter(MovimentacaoEtapa.etapa_id.in_(etapa_ids))
+        .order_by(MovimentacaoEtapa.ocorrida_em, MovimentacaoEtapa.criado_em)
+        .all()
+    )
+    for mov, nome_revisor in linhas:
+        r = resumo.setdefault(
+            mov.etapa_id,
+            {"entrada": None, "saida": None, "total": 0, "ultima": None},
+        )
+        r["total"] += 1
+        if mov.tipo == TipoMovimentacao.ENTRADA:
+            r["entrada"] = (r["entrada"] or 0.0) + (mov.quantidade_kg or 0.0)
+        elif mov.tipo == TipoMovimentacao.SAIDA:
+            r["saida"] = (r["saida"] or 0.0) + (mov.quantidade_kg or 0.0)
+        # A lista está em ordem cronológica: a última atribuição vence.
+        r["ultima"] = {
+            "tipo": mov.tipo.value,
+            "ocorrida_em": mov.ocorrida_em,
+            "quantidade_kg": mov.quantidade_kg,
+            "responsavel": mov.responsavel,
+            "registrado_por_nome": nome_revisor,
+        }
+    return resumo
+
+
+def _etapa_registrada(e: EtapaLote, r: dict | None) -> dict:
+    r = r or {"entrada": None, "saida": None, "total": 0, "ultima": None}
+
+    diferenca = None
+    if (
+        e.status == StatusEtapa.CONCLUIDA
+        and r["entrada"] is not None
+        and r["saida"] is not None
+    ):
+        diferenca = round(r["entrada"] - r["saida"], 3)
+
     return {
         "id": e.id,
         "tipo": e.tipo.value,
@@ -92,13 +141,23 @@ def _etapa_registrada(e: EtapaLote) -> dict:
         "pais_destino": e.pais_destino,
         "importador": e.importador,
         "navio": e.navio,
+        "quantidade_entrada_kg": (
+            round(r["entrada"], 3) if r["entrada"] is not None else None
+        ),
+        "quantidade_saida_kg": (
+            round(r["saida"], 3) if r["saida"] is not None else None
+        ),
+        "diferenca_kg": diferenca,
+        "total_movimentacoes": r["total"],
+        "ultima_movimentacao": r["ultima"],
     }
 
 
 def montar_linha_do_tempo(db: Session, lote_id: uuid.UUID) -> dict | None:
     """
     Linha do tempo completa de um lote: origem (automática) seguida das
-    etapas registradas, em ordem. Devolve None se o lote não existir.
+    etapas registradas, em ordem, com o resumo das movimentações de cada
+    uma. Devolve None se o lote não existir.
     'etapas_pendentes' lista os tipos que ainda não foram registrados.
     """
     lote = db.query(Lote).filter(Lote.id == lote_id).first()
@@ -112,13 +171,14 @@ def montar_linha_do_tempo(db: Session, lote_id: uuid.UUID) -> dict | None:
         .all()
     )
     tipos_registrados = {e.tipo for e in registradas}
+    resumo = _resumir_movimentacoes(db, [e.id for e in registradas])
 
     return {
         "lote_id": lote.id,
         "codigo_lote": lote.codigo_lote,
         "peso_total_kg": lote.peso_total_kg,
         "etapas": [_etapa_origem(lote)]
-        + [_etapa_registrada(e) for e in registradas],
+        + [_etapa_registrada(e, resumo.get(e.id)) for e in registradas],
         "etapas_pendentes": [
             t.value for t in ETAPAS_REGISTRAVEIS if t not in tipos_registrados
         ],
