@@ -18,3 +18,4 @@ from app.models.alerta_documento import AlertaDocumento, TipoAlerta
 from app.models.area_restrita import AreaRestrita, TipoAreaRestrita
 from app.models.sinalizacao_talhao import SinalizacaoTalhao
 from app.models.etapa_lote import EtapaLote, TipoEtapa, StatusEtapa, ModalTransporte
+from app.models.movimentacao_etapa import MovimentacaoEtapa, TipoMovimentacao

@@ -6,10 +6,10 @@ import RotaProtegida from "@/components/RotaProtegida";
 import SinoAlertas from "@/components/SinoAlertas";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { obterResumoSinalizacoes } from "@/lib/api/sinalizacoes";
 import { ResumoSinalizacoes } from "@/lib/api/types";
