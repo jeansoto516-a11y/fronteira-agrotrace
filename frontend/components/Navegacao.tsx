@@ -20,6 +20,7 @@ const ITENS: ItemMenu[] = [
     { rotulo: "Safras e culturas", href: "/safras" },
     { rotulo: "Colheitas", href: "/colheitas" },
     { rotulo: "Lotes", href: "/lotes" },
+    { rotulo: "Cadeia de custódia", href: "/cadeia" },
     { rotulo: "Documentos", href: "/documentos" },
     {
     rotulo: "Auditoria",

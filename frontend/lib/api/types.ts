@@ -274,3 +274,91 @@ export interface RevisaoInput {
     decisao: "confirmada" | "descartada";
     parecer?: string;
 }
+
+export type TipoEtapa =
+    | "fazenda"
+    | "armazem"
+    | "transporte"
+    | "porto"
+    | "exportacao";
+
+export type StatusEtapa = "planejada" | "em_andamento" | "concluida";
+
+export type ModalTransporte = "rodoviario" | "ferroviario" | "hidroviario";
+
+export type TipoMovimentacao =
+    | "entrada"
+    | "saida"
+    | "transferencia_responsavel"
+    | "ocorrencia";
+
+export interface OrigemFazendaCadeia {
+    fazenda_id: string;
+    fazenda_nome: string;
+    municipio: string;
+    estado: string;
+    produtor_nome: string;
+    quantidade_kg: number;
+}
+
+export interface UltimaMovimentacaoCadeia {
+    tipo: TipoMovimentacao;
+    ocorrida_em: string;
+    quantidade_kg: number | null;
+    responsavel: string | null;
+    registrado_por_nome: string | null;
+}
+
+export interface EtapaCadeia {
+    id: string | null;
+    tipo: TipoEtapa;
+    ordem: number;
+    status: StatusEtapa;
+    automatica: boolean;
+    local_nome: string | null;
+    municipio: string | null;
+    estado: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    data_entrada: string | null;
+    data_saida: string | null;
+    responsavel: string | null;
+    documento_referencia: string | null;
+    observacoes: string | null;
+    modal: ModalTransporte | null;
+    placa_veiculo: string | null;
+    transportadora: string | null;
+    origem: string | null;
+    destino: string | null;
+    pais_destino: string | null;
+    importador: string | null;
+    navio: string | null;
+    quantidade_entrada_kg: number | null;
+    quantidade_saida_kg: number | null;
+    diferenca_kg: number | null;
+    total_movimentacoes: number;
+    ultima_movimentacao: UltimaMovimentacaoCadeia | null;
+    origens: OrigemFazendaCadeia[] | null;
+}
+
+export interface LinhaDoTempoLote {
+    lote_id: string;
+    codigo_lote: string;
+    peso_total_kg: number | null;
+    etapas: EtapaCadeia[];
+    etapas_pendentes: TipoEtapa[];
+}
+
+export interface MovimentacaoEtapa {
+    id: string;
+    etapa_id: string;
+    tipo: TipoMovimentacao;
+    ocorrida_em: string;
+    quantidade_kg: number | null;
+    responsavel: string | null;
+    documento_referencia: string | null;
+    observacao: string | null;
+    registrado_por_id: string | null;
+    registrado_por_nome: string | null;
+    criado_em: string | null;
+}
