@@ -362,3 +362,46 @@ export interface MovimentacaoEtapa {
     registrado_por_nome: string | null;
     criado_em: string | null;
 }
+
+export type StatusConformidade = "completo" | "pendente" | "vencido";
+
+export type TipoMotivoConformidade =
+    | "documento_ausente"
+    | "documento_vencido"
+    | "documento_a_vencer"
+    | "restricao_pendente_revisao"
+    | "restricao_confirmada";
+
+export type SeveridadeMotivo = "impeditivo" | "atencao";
+
+export interface MotivoConformidade {
+    tipo: TipoMotivoConformidade;
+    severidade: SeveridadeMotivo;
+    entidade_tipo: string;
+    entidade_id: string;
+    entidade_nome: string;
+    documento_tipo: string | null;
+    data_validade: string | null;
+    detalhe: string;
+}
+
+export interface ConformidadeLote {
+    lote_id: string;
+    codigo_lote: string;
+    peso_total_kg: number | null;
+    status: StatusConformidade;
+    avaliado_em: string;
+    total_fazendas: number;
+    total_talhoes: number;
+    total_impeditivos: number;
+    total_avisos: number;
+    motivos: MotivoConformidade[];
+}
+
+export interface ResumoConformidade {
+    total_lotes: number;
+    completos: number;
+    pendentes: number;
+    vencidos: number;
+    com_avisos: number;
+}

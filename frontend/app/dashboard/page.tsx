@@ -6,17 +6,21 @@ import RotaProtegida from "@/components/RotaProtegida";
 import SinoAlertas from "@/components/SinoAlertas";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-    Card,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { obterResumoSinalizacoes } from "@/lib/api/sinalizacoes";
-import { ResumoSinalizacoes } from "@/lib/api/types";
+import { obterResumoConformidade } from "@/lib/api/conformidade";
+import { ResumoConformidade, ResumoSinalizacoes } from "@/lib/api/types";
 
 export default function DashboardPage() {
     const { usuario } = useAuth();
     const [resumo, setResumo] = useState<ResumoSinalizacoes | null>(null);
+    const [conformidade, setConformidade] = useState<ResumoConformidade | null>(
+    null,
+    );
 
     const podeVerAuditoria =
     usuario?.perfil === "auditor_compliance" ||
@@ -31,6 +35,19 @@ export default function DashboardPage() {
         });
     }, [podeVerAuditoria]);
 
+    useEffect(() => {
+    if (!usuario) return;
+    obterResumoConformidade()
+        .then(setConformidade)
+        .catch(() => {
+        // silencioso: o dashboard não deve quebrar se o resumo falhar
+        });
+    }, [usuario]);
+
+    const lotesEmAtencao = conformidade
+    ? conformidade.pendentes + conformidade.vencidos
+    : null;
+
     return (
     <RotaProtegida>
         <main className="p-8 space-y-6">
@@ -42,8 +59,28 @@ export default function DashboardPage() {
             Bem-vindo, <strong>{usuario?.nome}</strong> ({usuario?.perfil})
         </p>
 
-        {podeVerAuditoria && (
-            <section className="grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
+        <section className="grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
+            <Link href="/conformidade" className="block">
+            <Card>
+                <CardHeader>
+                <CardDescription>Lotes que precisam de atenção</CardDescription>
+                <CardTitle
+                    className={`text-3xl ${
+                    lotesEmAtencao ? "text-red-700" : ""
+                    }`}
+                >
+                    {lotesEmAtencao ?? "-"}
+                </CardTitle>
+                <CardDescription>
+                    {conformidade
+                    ? `${conformidade.vencidos} vencido(s), ${conformidade.pendentes} pendente(s) e ${conformidade.completos} completo(s). Clique para abrir o painel.`
+                    : "Carregando..."}
+                </CardDescription>
+                </CardHeader>
+            </Card>
+            </Link>
+
+            {podeVerAuditoria && (
             <Link href="/auditoria" className="block">
                 <Card>
                 <CardHeader>
@@ -67,8 +104,8 @@ export default function DashboardPage() {
                 </CardHeader>
                 </Card>
             </Link>
-            </section>
-        )}
+            )}
+        </section>
         </main>
     </RotaProtegida>
     );
