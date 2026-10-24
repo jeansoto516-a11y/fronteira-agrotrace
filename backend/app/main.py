@@ -7,6 +7,7 @@ from app.api import cadeia
 from app.api import etapas
 from app.api import movimentacoes
 from app.api import conformidade
+from app.api import relatorios
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 
@@ -57,6 +58,7 @@ app.include_router(cadeia.router)
 app.include_router(etapas.router)
 app.include_router(movimentacoes.router)
 app.include_router(conformidade.router)
+app.include_router(relatorios.router)
 
 @app.get("/")
 def root():
