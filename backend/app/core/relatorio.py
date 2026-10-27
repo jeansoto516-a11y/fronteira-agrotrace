@@ -38,8 +38,6 @@ def _coletar_origens(lote: Lote):
                 "colheita_id": colheita.id,
                 "data_colheita": colheita.data_colheita,
                 "quantidade_kg": vinculo.quantidade_kg,
-                "latitude": colheita.latitude,
-                "longitude": colheita.longitude,
                 "safra": talhao_safra.safra.identificacao,
                 "cultura": talhao_safra.cultura.nome,
                 "talhao_id": talhao.id,

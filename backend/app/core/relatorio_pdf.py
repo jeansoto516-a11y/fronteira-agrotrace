@@ -1,10 +1,13 @@
 import math
 from datetime import datetime
 from enum import Enum
+from io import BytesIO
 from zoneinfo import ZoneInfo
 
 from fpdf import FPDF
 from fpdf.fonts import FontFace
+
+from app.core.mapa_estatico import obter_mapa_base
 
 FUSO = ZoneInfo("America/Sao_Paulo")
 
@@ -375,10 +378,26 @@ def _secao_origem(pdf: FPDF, d: dict) -> None:
     )
 
 
-def _secao_mapa(pdf: FPDF, d: dict) -> None:
-    altura = 88.0
-    _secao(pdf, "3. Mapa das origens", altura_minima=altura + 30)
+def _pontos_do_anel(proj, anel) -> list:
+    pts = [proj(lon, lat) for lon, lat in anel]
+    if len(pts) > 1 and pts[0] == pts[-1]:
+        pts = pts[:-1]
+    return pts
 
+
+def _rotulo_no_mapa(pdf: FPDF, nome: str, px: float, py: float) -> None:
+    """Nome do talhão sobre um fundo branco translúcido, legível no mapa."""
+    pdf.set_font("Helvetica", "B", 7)
+    texto = t(nome)
+    largura = pdf.get_string_width(texto) + 2
+    with pdf.local_context(fill_opacity=0.75):
+        pdf.set_fill_color(255, 255, 255)
+        pdf.rect(px - largura / 2, py - 3.1, largura, 4, style="F")
+    pdf.set_text_color(*COR_TITULO)
+    pdf.text(px - pdf.get_string_width(texto) / 2, py, texto)
+
+
+def _secao_mapa(pdf: FPDF, d: dict) -> None:
     talhoes = [x for x in d["talhoes"] if x["coordenadas"]]
     areas = [
         (s["area_tipo"], anel)
@@ -387,53 +406,82 @@ def _secao_mapa(pdf: FPDF, d: dict) -> None:
     ]
     pontos = [p for x in talhoes for p in x["coordenadas"]]
     pontos += [p for _, anel in areas for p in anel]
+
+    # Mapa de fundo (OpenStreetMap). Se não der, usa o desenho esquemático.
+    fundo = obter_mapa_base(pontos) if pontos else None
+
+    largura = pdf.epw
+    altura = 88.0
+    if fundo:
+        altura = largura * fundo["altura_px"] / fundo["largura_px"]
+
+    _secao(pdf, "3. Mapa das origens", altura_minima=altura + 30)
+
     if not pontos:
         _texto(pdf, "Sem geometrias cadastradas para os talhões deste lote.", 9, (100, 100, 100))
         return
 
-    minx = min(p[0] for p in pontos)
-    maxx = max(p[0] for p in pontos)
-    miny = min(p[1] for p in pontos)
-    maxy = max(p[1] for p in pontos)
-    lat0 = (miny + maxy) / 2
-    kx = math.cos(math.radians(lat0))
-    gw = max((maxx - minx) * kx, 1e-9)
-    gh = max(maxy - miny, 1e-9)
-
-    largura = pdf.epw
-    margem = 8.0
-    escala = min((largura - 2 * margem) / gw, (altura - 2 * margem) / gh)
-    desloc_x = (largura - gw * escala) / 2
-    desloc_y = (altura - gh * escala) / 2
     x0 = pdf.l_margin
     y0 = pdf.get_y()
 
-    def proj(lon: float, lat: float):
-        return (
-            x0 + desloc_x + (lon - minx) * kx * escala,
-            y0 + altura - desloc_y - (lat - miny) * escala,
+    if fundo:
+        fator = largura / fundo["largura_px"]
+
+        def proj(lon: float, lat: float):
+            px, py = fundo["projetar"](lon, lat)
+            return x0 + px * fator, y0 + py * fator
+
+        pdf.image(BytesIO(fundo["imagem"]), x=x0, y=y0, w=largura, h=altura)
+        pdf.set_draw_color(200, 200, 200)
+        pdf.set_line_width(0.2)
+        pdf.rect(x0, y0, largura, altura)
+        opacidade_talhao = 0.35
+        km_largura = fundo["largura_px"] * fundo["metros_por_pixel"] / 1000
+        km_altura = fundo["altura_px"] * fundo["metros_por_pixel"] / 1000
+        nota_extensao = (
+            f"Quadro de aproximadamente {fmt_num(km_largura, 1)} km x "
+            f"{fmt_num(km_altura, 1)} km."
         )
+    else:
+        minx = min(p[0] for p in pontos)
+        maxx = max(p[0] for p in pontos)
+        miny = min(p[1] for p in pontos)
+        maxy = max(p[1] for p in pontos)
+        lat0 = (miny + maxy) / 2
+        kx = math.cos(math.radians(lat0))
+        gw = max((maxx - minx) * kx, 1e-9)
+        gh = max(maxy - miny, 1e-9)
 
-    def pontos_do_anel(anel):
-        pts = [proj(lon, lat) for lon, lat in anel]
-        if len(pts) > 1 and pts[0] == pts[-1]:
-            pts = pts[:-1]
-        return pts
+        margem = 8.0
+        escala = min((largura - 2 * margem) / gw, (altura - 2 * margem) / gh)
+        desloc_x = (largura - gw * escala) / 2
+        desloc_y = (altura - gh * escala) / 2
 
-    # Quadro
-    pdf.set_fill_color(248, 250, 248)
-    pdf.set_draw_color(200, 200, 200)
-    pdf.set_line_width(0.2)
-    pdf.rect(x0, y0, largura, altura, style="DF")
+        def proj(lon: float, lat: float):
+            return (
+                x0 + desloc_x + (lon - minx) * kx * escala,
+                y0 + altura - desloc_y - (lat - miny) * escala,
+            )
+
+        pdf.set_fill_color(248, 250, 248)
+        pdf.set_draw_color(200, 200, 200)
+        pdf.set_line_width(0.2)
+        pdf.rect(x0, y0, largura, altura, style="DF")
+        opacidade_talhao = 1.0
+        nota_extensao = (
+            "Extensão aproximada da área: "
+            f"{fmt_num(gw * 111.32, 1)} km x {fmt_num(gh * 111.32, 1)} km."
+        )
 
     # Talhões (verde)
     pdf.set_fill_color(187, 247, 208)
     pdf.set_draw_color(22, 101, 52)
     pdf.set_line_width(0.5)
     for x in talhoes:
-        pts = pontos_do_anel(x["coordenadas"])
+        pts = _pontos_do_anel(proj, x["coordenadas"])
         if len(pts) >= 3:
-            pdf.polygon(pts, style="DF")
+            with pdf.local_context(fill_opacity=opacidade_talhao):
+                pdf.polygon(pts, style="DF")
 
     # Áreas restritas por cima, translúcidas
     cores_area = {
@@ -441,23 +489,39 @@ def _secao_mapa(pdf: FPDF, d: dict) -> None:
         "desmatamento": ((234, 88, 12), (154, 52, 18)),
     }
     for tipo_area, anel in areas:
-        fundo, borda = cores_area.get(tipo_area, ((220, 38, 38), (153, 27, 27)))
-        pts = pontos_do_anel(anel)
+        cor_fundo, cor_borda = cores_area.get(
+            tipo_area, ((220, 38, 38), (153, 27, 27))
+        )
+        pts = _pontos_do_anel(proj, anel)
         if len(pts) < 3:
             continue
         with pdf.local_context(fill_opacity=0.45):
-            pdf.set_fill_color(*fundo)
-            pdf.set_draw_color(*borda)
+            pdf.set_fill_color(*cor_fundo)
+            pdf.set_draw_color(*cor_borda)
             pdf.set_line_width(0.4)
             pdf.polygon(pts, style="DF")
 
     # Nomes dos talhões
-    pdf.set_font("Helvetica", "B", 7)
-    pdf.set_text_color(*COR_TITULO)
     for x in talhoes:
         px, py = proj(x["longitude"], x["latitude"])
-        nome = t(x["nome"])
-        pdf.text(px - pdf.get_string_width(nome) / 2, py, nome)
+        _rotulo_no_mapa(pdf, x["nome"], px, py)
+
+    # Atribuição do mapa de fundo (obrigatória)
+    if fundo:
+        pdf.set_font("Helvetica", size=6.5)
+        texto_atribuicao = t(fundo["atribuicao"])
+        largura_atribuicao = pdf.get_string_width(texto_atribuicao) + 2
+        with pdf.local_context(fill_opacity=0.8):
+            pdf.set_fill_color(255, 255, 255)
+            pdf.rect(
+                x0 + largura - largura_atribuicao, y0 + altura - 4,
+                largura_atribuicao, 4, style="F",
+            )
+        pdf.set_text_color(60, 60, 60)
+        pdf.text(
+            x0 + largura - largura_atribuicao + 1, y0 + altura - 1.2,
+            texto_atribuicao,
+        )
 
     # Legenda
     pdf.set_line_width(0.2)
@@ -470,23 +534,28 @@ def _secao_mapa(pdf: FPDF, d: dict) -> None:
     lx = x0
     pdf.set_font("Helvetica", size=8)
     pdf.set_text_color(60, 60, 60)
-    for rotulo, fundo, borda in itens:
-        pdf.set_fill_color(*fundo)
-        pdf.set_draw_color(*borda)
+    for rotulo, cor_fundo, cor_borda in itens:
+        pdf.set_fill_color(*cor_fundo)
+        pdf.set_draw_color(*cor_borda)
         pdf.rect(lx, ly, 4, 3, style="DF")
         pdf.set_xy(lx + 5.5, ly - 0.8)
         pdf.cell(32, 4.6, t(rotulo))
         lx += 42
     pdf.set_text_color(0, 0, 0)
 
-    largura_km = gw * 111.32
-    altura_km = gh * 111.32
     pdf.set_y(ly + 6)
+    if fundo:
+        origem_mapa = (
+            f"Mapa de fundo: {fundo['atribuicao']} (licença ODbL). "
+        )
+    else:
+        origem_mapa = (
+            "Representação esquemática, sem mapa de fundo (indisponível "
+            "no momento da geração). "
+        )
     _texto(
         pdf,
-        "Representação esquemática, sem mapa de fundo. Quadro de aproximadamente "
-        f"{fmt_num(largura_km, 1)} km x {fmt_num(altura_km, 1)} km. "
-        "Coordenadas em WGS 84 (EPSG:4326).",
+        origem_mapa + nota_extensao + " Coordenadas em WGS 84 (EPSG:4326).",
         7.5, (100, 100, 100),
     )
 
