@@ -15,3 +15,18 @@ export async function consultarRastreabilidade(loteId: string): Promise<Rastreab
     const resposta = await api.get<RastreabilidadeLote>(`/lotes/${loteId}/rastreabilidade`);
     return resposta.data;
 }
+
+export async function baixarRelatorioLote(loteId: string, codigoLote: string): Promise<void> {
+    const resposta = await api.get<Blob>(`/lotes/${loteId}/relatorio.pdf`, {
+        responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(resposta.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `relatorio-rastreabilidade-${codigoLote}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+}

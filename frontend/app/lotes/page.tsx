@@ -23,7 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { listarColheitas } from "@/lib/api/colheitas";
-import { listarLotes, criarLote, consultarRastreabilidade } from "@/lib/api/lotes";
+import { listarLotes, criarLote, consultarRastreabilidade, baixarRelatorioLote } from "@/lib/api/lotes";
 import { Colheita, Lote, RastreabilidadeLote } from "@/lib/api/types";
 
 export default function LotesPage() {
@@ -40,6 +40,7 @@ export default function LotesPage() {
     const [loteConsultaId, setLoteConsultaId] = useState("");
     const [rastreabilidade, setRastreabilidade] = useState<RastreabilidadeLote | null>(null);
     const [consultando, setConsultando] = useState(false);
+    const [baixandoRelatorio, setBaixandoRelatorio] = useState(false);
 
     async function carregarDados() {
     try {
@@ -117,6 +118,23 @@ export default function LotesPage() {
         toast.error("Erro ao consultar rastreabilidade");
     } finally {
         setConsultando(false);
+    }
+    }
+
+        async function handleBaixarRelatorio() {
+    const lote = lotes.find((l) => l.id === loteConsultaId);
+    if (!lote) {
+        toast.error("Selecione um lote para gerar o relatório");
+        return;
+    }
+    setBaixandoRelatorio(true);
+    try {
+        await baixarRelatorioLote(lote.id, lote.codigo_lote);
+        toast.success("Relatório gerado com sucesso!");
+    } catch {
+        toast.error("Erro ao gerar o relatório. Seu perfil pode não ter permissão.");
+    } finally {
+        setBaixandoRelatorio(false);
     }
     }
 
@@ -250,7 +268,11 @@ export default function LotesPage() {
             <Button onClick={handleConsultarRastreabilidade} disabled={consultando}>
                 {consultando ? "Consultando..." : "Consultar Origem"}
             </Button>
+            <Button variant="outline" onClick={handleBaixarRelatorio} disabled={baixandoRelatorio}>
+                {baixandoRelatorio ? "Gerando PDF..." : "Baixar relatório PDF"}
+            </Button>
             </div>
+
 
             {rastreabilidade && (
             <div className="space-y-4">
