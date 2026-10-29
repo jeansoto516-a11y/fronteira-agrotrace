@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import RotaProtegida from "@/components/RotaProtegida";
-import SinoAlertas from "@/components/SinoAlertas";
+import SinoNotificacoes from "@/components/SinoNotificacoes";
 import { useAuth } from "@/contexts/AuthContext";
 import {
     Card,
@@ -14,7 +14,8 @@ import {
 import { obterResumoSinalizacoes } from "@/lib/api/sinalizacoes";
 import { obterResumoConformidade } from "@/lib/api/conformidade";
 import { obterIndicadores } from "@/lib/api/indicadores";
-import { Indicadores, ResumoConformidade, ResumoSinalizacoes } from "@/lib/api/types";
+import { obterResumoNotificacoes } from "@/lib/api/notificacoes";
+import { Indicadores, ResumoConformidade, ResumoNotificacoes, ResumoSinalizacoes } from "@/lib/api/types";
 
 export default function DashboardPage() {
     const { usuario } = useAuth();
@@ -24,6 +25,8 @@ export default function DashboardPage() {
     );
 
         const [indicadores, setIndicadores] = useState<Indicadores | null>(null);
+
+        const [notificacoes, setNotificacoes] = useState<ResumoNotificacoes | null>(null);
 
     const podeVerAuditoria =
     usuario?.perfil === "auditor_compliance" ||
@@ -56,6 +59,15 @@ export default function DashboardPage() {
         });
     }, [usuario]);
 
+        useEffect(() => {
+    if (!podeVerAuditoria) return;
+    obterResumoNotificacoes()
+        .then(setNotificacoes)
+        .catch(() => {
+        // silencioso: o dashboard não deve quebrar se o resumo falhar
+        });
+    }, [podeVerAuditoria]);
+
     const lotesEmAtencao = conformidade
     ? conformidade.pendentes + conformidade.vencidos
     : null;
@@ -65,7 +77,7 @@ export default function DashboardPage() {
         <main className="p-8 space-y-6">
         <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Dashboard</h1>
-            <SinoAlertas />
+            <SinoNotificacoes />
         </div>
         <p>
             Bem-vindo, <strong>{usuario?.nome}</strong> ({usuario?.perfil})
@@ -127,6 +139,25 @@ export default function DashboardPage() {
                 </CardHeader>
                 </Card>
             </Link>
+            )}
+                        {podeVerAuditoria && (
+            <Card>
+                <CardHeader>
+                <CardDescription>Notificações não lidas</CardDescription>
+                <CardTitle
+                    className={`text-3xl ${
+                    notificacoes && notificacoes.nao_lidos > 0 ? "text-red-700" : ""
+                    }`}
+                >
+                    {notificacoes ? notificacoes.nao_lidos : "-"}
+                </CardTitle>
+                <CardDescription>
+                    {notificacoes
+                    ? `${notificacoes.documentos_vencendo} documento(s) vencendo, ${notificacoes.sobreposicoes_area} sobreposição(ões) de área e ${notificacoes.etapas_pendentes} etapa(s) pendente(s). Clique no sino para ver a lista.`
+                    : "Carregando..."}
+                </CardDescription>
+                </CardHeader>
+            </Card>
             )}
         </section>
 

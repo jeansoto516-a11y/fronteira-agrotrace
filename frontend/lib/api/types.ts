@@ -438,3 +438,24 @@ export interface Indicadores {
     lotes_certificados: LotesCertificados;
     alertas: AlertasIndicador;
 }
+
+export type TipoNotificacao =
+    | "documento_vencendo"
+    | "sobreposicao_area"
+    | "etapa_pendente";
+
+export interface Notificacao {
+    id: string;
+    tipo: TipoNotificacao;
+    mensagem: string;
+    link: string;
+    lido: boolean;
+    criado_em: string | null;
+}
+
+export interface ResumoNotificacoes {
+    nao_lidos: number;
+    documentos_vencendo: number;
+    sobreposicoes_area: number;
+    etapas_pendentes: number;
+}

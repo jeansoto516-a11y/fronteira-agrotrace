@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import RotaProtegida from "@/components/RotaProtegida";
-import SinoAlertas from "@/components/SinoAlertas";
+import SinoNotificacoes from "@/components/SinoNotificacoes";
 import MapaFazendasWrapper from "@/components/Mapa/MapaFazendasWrapper";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { listarFazendas } from "@/lib/api/fazendas";
 import { listarTalhoes } from "@/lib/api/talhoes";
@@ -49,7 +49,7 @@ export default function DashboardExecutivoPage() {
         <main className="p-8 space-y-6">
         <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Dashboard executivo</h1>
-            <SinoAlertas />
+            <SinoNotificacoes />
         </div>
 
         <section className="grid max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
