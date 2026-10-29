@@ -405,3 +405,36 @@ export interface ResumoConformidade {
     vencidos: number;
     com_avisos: number;
 }
+
+export interface VolumePorStatus {
+    completo_kg: number;
+    pendente_kg: number;
+    vencido_kg: number;
+}
+
+export interface VolumeRastreado {
+    total_kg: number;
+    por_status: VolumePorStatus;
+}
+
+export interface LotesCertificados {
+    total_lotes: number;
+    certificados: number;
+    percentual: number;
+}
+
+export interface AlertasIndicador {
+    documentos_em_alerta: number;
+    vencidos: number;
+    vencem_7_dias: number;
+    vencem_15_dias: number;
+    vencem_30_dias: number;
+    nao_lidos: number;
+}
+
+export interface Indicadores {
+    gerado_em: string;
+    volume_rastreado: VolumeRastreado;
+    lotes_certificados: LotesCertificados;
+    alertas: AlertasIndicador;
+}
