@@ -72,6 +72,17 @@ export default function DashboardPage() {
         </p>
 
         <section className="grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
+                        <Link href="/dashboard-executivo" className="block">
+            <Card>
+                <CardHeader>
+                <CardDescription>Visão executiva</CardDescription>
+                <CardTitle className="text-3xl">Mapa geral</CardTitle>
+                <CardDescription>
+                    Indicadores consolidados e mapa de todas as fazendas. Clique para abrir o dashboard executivo.
+                </CardDescription>
+                </CardHeader>
+            </Card>
+            </Link>
             <Link href="/conformidade" className="block">
             <Card>
                 <CardHeader>
