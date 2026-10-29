@@ -9,6 +9,7 @@ from app.api import movimentacoes
 from app.api import conformidade
 from app.api import relatorios
 from app.api import indicadores
+from app.api import notificacoes
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 
@@ -61,6 +62,7 @@ app.include_router(movimentacoes.router)
 app.include_router(conformidade.router)
 app.include_router(relatorios.router)
 app.include_router(indicadores.router)
+app.include_router(notificacoes.router)
 
 @app.get("/")
 def root():

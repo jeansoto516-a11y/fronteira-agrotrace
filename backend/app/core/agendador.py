@@ -3,6 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from app.db.database import SessionLocal
 from app.core.alertas import gerar_alertas
 from app.core.sinalizacao import sincronizar_sinalizacoes
+from app.core.notificacoes import gerar_notificacoes
 
 scheduler = BackgroundScheduler(timezone="America/Sao_Paulo")
 
@@ -32,6 +33,17 @@ def job_sincronizar_sinalizacoes():
     finally:
         db.close()
 
+def job_gerar_notificacoes():
+    """Cria as notificações internas (documentos, sobreposição e etapas)."""
+    db = SessionLocal()
+    try:
+        resultado = gerar_notificacoes(db)
+        print(f"[notificacoes] rotina executada: {resultado}")
+    except Exception as e:
+        db.rollback()
+        print(f"[notificacoes] ERRO na rotina: {e}")
+    finally:
+        db.close()
 
 def iniciar_agendador():
     if scheduler.running:
@@ -56,11 +68,24 @@ def iniciar_agendador():
         coalesce=True,
         misfire_grace_time=3600,
     )
+
+    scheduler.add_job(
+        job_gerar_notificacoes,
+        trigger="cron",
+        hour=6,
+        minute=10,
+        id="notificacoes_diarias",
+        replace_existing=True,
+        coalesce=True,
+        misfire_grace_time=3600,
+    )
+
     scheduler.start()
     # Roda uma vez ao subir a API, para cobrir o caso de o servidor
     # ter ficado desligado no horário agendado.
     job_gerar_alertas()
     job_sincronizar_sinalizacoes()
+    job_gerar_notificacoes()
 
 
 def parar_agendador():
